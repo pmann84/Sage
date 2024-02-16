@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sage/string/utilities.hpp"
+
 #include <any>
 #include <string>
 #include <utility>
@@ -14,94 +16,6 @@
 
 namespace sage::argparse
 {
-    namespace string_utils
-    {
-        template<typename CharT>
-        inline bool starts_with(const std::basic_string<CharT> &str, const std::basic_string<CharT> &prefix)
-        {
-            return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
-        }
-
-        template<typename CharT>
-        inline std::vector<std::basic_string<CharT>> split(const std::basic_string<CharT> &string_to_split, const std::basic_string<CharT> &delimiter)
-        {
-            std::vector<std::basic_string<CharT>> split_string;
-            if (string_to_split.empty()) return split_string;
-            std::size_t pos = string_to_split.find(delimiter);
-            std::size_t initial_pos = 0;
-
-            // Decompose statement
-            while (pos != std::basic_string<CharT>::npos)
-            {
-                split_string.push_back(string_to_split.substr(initial_pos, pos - initial_pos));
-                initial_pos = pos + delimiter.size();
-                pos = string_to_split.find(delimiter, initial_pos);
-            }
-
-            // Add the last one
-            split_string.push_back(
-                    string_to_split.substr(initial_pos, std::min(pos, string_to_split.size()) - initial_pos + 1));
-
-            return split_string;
-        }
-
-        template<typename CharT>
-        inline std::basic_string<CharT> join(const std::vector<std::basic_string<CharT>> &split_string, const std::basic_string<CharT> &delimiter)
-        {
-            if (split_string.empty()) return std::basic_string<CharT>();
-            if (split_string.size() == 1) return split_string[0];
-            auto it = split_string.begin();
-            std::basic_string<CharT> joined_string = *it++;
-            for (; it != split_string.end(); ++it)
-            {
-                joined_string += delimiter;
-                joined_string += *it;
-            }
-            return joined_string;
-        }
-
-        template<typename CharT>
-        inline std::basic_string<CharT> trim_left(const std::basic_string<CharT>& string_to_trim, const CharT delimiter)
-        {
-            if (string_to_trim.empty()) return std::basic_string<CharT>();
-            typename std::basic_string<CharT>::const_iterator p = string_to_trim.cbegin();
-            while (*p == delimiter) ++p;
-            return p == string_to_trim.cend() ? std::basic_string<CharT>() : std::basic_string<CharT>(p, string_to_trim.end());
-        }
-
-        template<typename CharT>
-        inline std::basic_string<CharT> to_upper(const std::basic_string<CharT>& str)
-        {
-            std::basic_string<CharT> upper_str(str);
-            for (auto& c : upper_str)
-            {
-                c = std::toupper(c);
-            }
-            return upper_str;
-        }
-
-        template<typename CharT>
-        inline std::basic_string<CharT> to_lower(const std::basic_string<CharT>& str)
-        {
-            std::basic_string<CharT> lower_str(str);
-            for (auto& c : lower_str)
-            {
-                c = std::tolower(c);
-            }
-            return lower_str;
-        }
-
-        inline std::string get_string_with_max_size(const std::vector<std::string>& strs)
-        {
-            return *std::max_element(strs.begin(), strs.end(), [](const std::string& a, const std::string& b){ return a.size() < b.size(); });
-        }
-
-        inline size_t get_max_string_size(const std::vector<std::string>& strs)
-        {
-            return get_string_with_max_size(strs).size();
-        }
-    }
-
     namespace exceptions
     {
         class unknown_argument : public std::exception
@@ -114,7 +28,7 @@ namespace sage::argparse
                 m_error_message = error_msg.str();
             }
 
-            [[nodiscard]] virtual char const* what() const noexcept
+            [[nodiscard]] char const* what() const noexcept override
             {
                 return m_error_message.c_str();
             }
@@ -132,7 +46,7 @@ namespace sage::argparse
                 m_error_message = error_msg.str();
             }
 
-            [[nodiscard]] virtual char const* what() const noexcept
+            [[nodiscard]] char const* what() const noexcept override
             {
                 return m_error_message.c_str();
             }
@@ -145,7 +59,7 @@ namespace sage::argparse
     {
         inline bool is_optional(const std::string& argument_name)
         {
-            return string_utils::starts_with(argument_name, std::string("-"));
+            return string::utilities::starts_with(argument_name, std::string("-"));
         }
 
         inline bool is_valid_argument_flags(const std::vector<std::string>& argument_names)
@@ -225,11 +139,11 @@ namespace sage::argparse
                         "Error: Invalid option string: all names must start with a character '-' or none of them.");
             }
             // Use the longest name as the destination
-            std::string longest_arg = string_utils::get_string_with_max_size(m_flags);
+            std::string longest_arg = string::utilities::get_string_with_max_size(m_flags);
             m_destination = longest_arg;
             if (validate::is_optional(longest_arg))
             {
-                m_destination = string_utils::trim_left(longest_arg, '-');
+                m_destination = string::utilities::trim_left(longest_arg, '-');
             }
 
         }
@@ -307,7 +221,7 @@ namespace sage::argparse
             return *this;
         }
 
-        argument& num_args(std::string n)
+        argument& num_args(const std::string& n)
         {
             if (n == "?")
             {
@@ -328,12 +242,12 @@ namespace sage::argparse
             return *this;
         }
 
-        size_t num_args() const
+        [[nodiscard]] size_t num_args() const
         {
             return m_nargs;
         }
 
-        NargsMode num_args_mode() const
+        [[nodiscard]] NargsMode num_args_mode() const
         {
             return m_nargs_mode;
         }
@@ -354,7 +268,7 @@ namespace sage::argparse
             return *this;
         }
 
-        std::string help() const
+        [[nodiscard]] std::string help() const
         {
             return m_help;
         }
@@ -365,29 +279,29 @@ namespace sage::argparse
             return *this;
         }
 
-        std::string dest() const
+        [[nodiscard]] std::string dest() const
         {
             return m_destination;
         }
 
-        bool is_optional() const
+        [[nodiscard]] bool is_optional() const
         {
             return validate::is_optional(m_flags[0]);
         }
 
     //        friend std::ostream &operator<<(std::ostream &os, const argument &arg);
 
-        std::string get_name_string() const
+        [[nodiscard]] std::string get_name_string() const
         {
-            return string_utils::join(m_flags, std::string(", "));
+            return string::utilities::join(m_flags, std::string(", "));
         }
 
-        std::string get_longest_name_string() const
+        [[nodiscard]] std::string get_longest_name_string() const
         {
-            return string_utils::get_string_with_max_size(m_flags);
+            return string::utilities::get_string_with_max_size(m_flags);
         }
 
-        bool matches_arg_name(const std::string& arg_name) const
+        [[nodiscard]] bool matches_arg_name(const std::string& arg_name) const
         {
             return std::find_if(
                     m_flags.begin(),
@@ -399,7 +313,7 @@ namespace sage::argparse
             ) != m_flags.end();
         }
 
-        bool is_set() const noexcept
+        [[nodiscard]] bool is_set() const noexcept
         {
             if (m_nargs_mode == NargsMode::All || m_nargs_mode == NargsMode::Single || m_default_value.has_value())
             {
@@ -441,6 +355,7 @@ namespace sage::argparse
                 : m_program_name(std::move(program_name))
                 , m_description(std::move(description))
                 , m_config_file_mode(false)
+                , m_environment_mode(false)
         {
             add_argument({"-h", "--help"})
                     .num_args(0)
@@ -584,7 +499,7 @@ namespace sage::argparse
         }
 
     private:
-        argument& add_argument(argument arg)
+        argument& add_argument(const argument& arg)
         {
             if (arg.is_optional())
             {
@@ -630,7 +545,7 @@ namespace sage::argparse
             }
         }
 
-        void consume_all_args(
+        static void consume_all_args(
                 argument& arg,
                 std::vector<std::string>& command_line_args,
                 std::vector<std::string>::iterator& current_arg)
@@ -687,7 +602,7 @@ namespace sage::argparse
             }
         }
 
-        void consume_single_arg(
+        static void consume_single_arg(
                 argument& arg,
                 std::vector<std::string>& command_line_args,
                 std::vector<std::string>::iterator& current_arg)
@@ -815,7 +730,7 @@ namespace sage::argparse
             pos_arg_index++;
         }
 
-        std::string get_usage_string() const
+        [[nodiscard]] std::string get_usage_string() const
         {
             // Optional arguments are surrounded by [], with the name being the longest flag available
             // Positional arguments are printed as the dest name
@@ -825,7 +740,7 @@ namespace sage::argparse
             {
                 // If single -- name show that, if only - name, show that arg.
                 std::string longest_arg_name = arg.get_longest_name_string();
-                std::string arg_output_str = string_utils::to_upper(string_utils::trim_left(longest_arg_name, '-'));
+                std::string arg_output_str = sage::string::utilities::to_upper(sage::string::utilities::trim_left(longest_arg_name, '-'));
                 ss << "[" << longest_arg_name;
                 size_t count = arg.num_args();
                 while (count > 0)
@@ -852,7 +767,7 @@ namespace sage::argparse
                     }
                     case NargsMode::All:
                     {
-                        ss << "[" << arg.dest() << " [" << string_utils::to_upper(arg.dest()) << " ...]] ";
+                        ss << "[" << arg.dest() << " [" << sage::string::utilities::to_upper(arg.dest()) << " ...]] ";
                         break;
                     }
                 }
@@ -861,7 +776,7 @@ namespace sage::argparse
             return ss.str();
         }
 
-        std::string get_help_string() const
+        [[nodiscard]] std::string get_help_string() const
         {
             std::stringstream ss;
             ss << std::endl;
@@ -870,7 +785,7 @@ namespace sage::argparse
                 ss << "\t" << m_description << std::endl << std::endl;
             }
 
-            if (m_positional_arguments.size() > 0)
+            if (!m_positional_arguments.empty())
             {
                 ss << "Positional Arguments: " << std::endl;
                 for (auto& pos : m_positional_arguments)
@@ -880,7 +795,7 @@ namespace sage::argparse
                 ss << std::endl;
             }
 
-            if (m_optional_arguments.size() > 0)
+            if (!m_optional_arguments.empty())
             {
                 ss << "Optional Arguments: " << std::endl;
                 for (auto& opt : m_optional_arguments)
@@ -892,7 +807,7 @@ namespace sage::argparse
             return ss.str();
         }
 
-        std::string get_usage_and_help_string() const
+        [[nodiscard]] std::string get_usage_and_help_string() const
         {
             std::stringstream ss;
             ss << get_usage_string() << std::endl;
@@ -900,7 +815,7 @@ namespace sage::argparse
             return ss.str();
         }
 
-        void print_error_usage_and_exit(std::string message) const
+        void print_error_usage_and_exit(const std::string& message) const
         {
             std::cout << message << std::endl;
             std::cout << get_usage_string() << std::endl;

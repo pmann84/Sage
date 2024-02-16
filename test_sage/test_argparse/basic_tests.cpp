@@ -1,7 +1,8 @@
 #include <sage/argparse/argparse.hpp>
 
+#include "common_setup.hpp"
+
 #include "gtest/gtest.h"
-#include "common.hpp"
 
 class BasicTests: public ::testing::Test
 {
@@ -25,86 +26,83 @@ private:
 TEST_F(BasicTests, TestOnePositionalArgumentSuccessfullyEntered)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "BAR"});
-    parser.parse_args(argc, (char**)argv);
-    for (int i = 0; i < argc; ++i) {
-        std::cout << "Arg " << i << ": " << argv[i] << std::endl;
-    }
-    const auto val = parser.get<std::string>("bar");
+    std::vector<char*> argv = {AppName, BarArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    const auto val = parser.get<std::string>(BarArgName);
     ASSERT_EQ(val, argv[1]);
 }
 
 TEST_F(BasicTests, TestOnePositionalArgumentNotEnteredExits)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe"});
-    EXPECT_EXIT(parser.parse_args(argc, (char**)argv), testing::ExitedWithCode(1), "");
+    std::vector<char*> argv = {AppName};
+    EXPECT_EXIT(parser.parse_args((int)argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
 }
 
 TEST_F(BasicTests, TestTwoPositionalArgumentsSuccessfullyEntered)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
-    parser.add_argument("foo").help("Positional foo argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
+    parser.add_argument(FooArgName).help(FooHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "BAR", "FOO"});
-    parser.parse_args(argc, (char**)argv);
-    ASSERT_EQ(parser.get<std::string>("bar"), argv[1]);
-    ASSERT_EQ(parser.get<std::string>("foo"), argv[2]);
+    std::vector<char*> argv = {AppName, BarArgValue, FooArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    ASSERT_EQ(parser.get<std::string>(BarArgName), argv[1]);
+    ASSERT_EQ(parser.get<std::string>(FooArgName), argv[2]);
 }
 
 TEST_F(BasicTests, TestOnePositionalArgumentNotEnteredButTwoRequiredExits)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
-    parser.add_argument("foo").help("Positional foo argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
+    parser.add_argument(FooArgName).help(FooHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "BAR"});
-    EXPECT_EXIT(parser.parse_args(argc, (char**)argv), testing::ExitedWithCode(1), "");
+    std::vector<char*> argv = {AppName, BarArgValue};
+    EXPECT_EXIT(parser.parse_args(argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
 }
 
 TEST_F(BasicTests, TestThreePositionalArgumentEnteredButTwoRequiredExits)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
-    parser.add_argument("foo").help("Positional foo argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
+    parser.add_argument(FooArgName).help(FooHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "FOO", "BAR", "BAZ"});
-    EXPECT_EXIT(parser.parse_args(argc, (char**)argv), testing::ExitedWithCode(1), "");
+    std::vector<char*> argv = {AppName, FooArgValue, BarArgValue, BazArgValue};
+    EXPECT_EXIT(parser.parse_args(argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
 }
 
 TEST_F(BasicTests, TestOptionalArgumentEnteredSuccessfully)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument({"--foo", "-f"}).help("Optional Foo argument.");
+    parser.add_argument({FooOptArgName, FooShortOptArgName}).help("Optional Foo argument.");
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "--foo", "FOO"});
-    parser.parse_args(argc, (char**)argv);
-    ASSERT_EQ(parser.get<std::string>("foo"), argv[2]);
+    std::vector<char*> argv = {AppName, FooOptArgName, FooArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    ASSERT_EQ(parser.get<std::string>(FooArgName), argv[2]);
 }
 
 TEST_F(BasicTests, TestOptionalArgumentShortVersionEnteredSuccessfully)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument({"--foo", "-f"}).help("Optional Foo argument.");
+    parser.add_argument({FooOptArgName, FooShortOptArgName}).help(FooOptHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "-f", "FOO"});
-    parser.parse_args(argc, (char**)argv);
-    ASSERT_EQ(parser.get<std::string>("foo"), argv[2]);
+    std::vector<char*> argv = {AppName, FooShortOptArgName, FooArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    ASSERT_EQ(parser.get<std::string>(FooArgName), argv[2]);
 }
 
 TEST_F(BasicTests, TestPositionalAndOptionalArgumentEnteredSuccessfully)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
-    parser.add_argument({"--foo", "-f"}).help("Optional Foo argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
+    parser.add_argument({"--foo", "-f"}).help(FooOptHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "BAR", "-f", "FOO"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName, BarArgValue, FooShortOptArgName, FooArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
     ASSERT_EQ(parser.get<std::string>("bar"), argv[1]);
     ASSERT_EQ(parser.get<std::string>("foo"), argv[3]);
 }
@@ -112,13 +110,13 @@ TEST_F(BasicTests, TestPositionalAndOptionalArgumentEnteredSuccessfully)
 TEST_F(BasicTests, TestPositionalAndOptionalArgumentEnteredSuccessfullyOptionalArgumentFirst)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("bar").help("Positional bar argument.");
-    parser.add_argument({"--foo", "-f"}).help("Optional Foo argument.");
+    parser.add_argument(BarArgName).help(BarHelp);
+    parser.add_argument({FooOptArgName, FooShortOptArgName}).help(FooOptHelp);
 
-    const auto [argc, argv] = make_args({"DummyApp.exe", "-f", "FOO", "BAR"});
-    parser.parse_args(argc, (char**)argv);
-    ASSERT_EQ(parser.get<std::string>("bar"), argv[3]);
-    ASSERT_EQ(parser.get<std::string>("foo"), argv[2]);
+    std::vector<char*> argv = {AppName, FooShortOptArgName, FooArgValue, BarArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    ASSERT_EQ(parser.get<std::string>(BarArgName), argv[3]);
+    ASSERT_EQ(parser.get<std::string>(FooArgName), argv[2]);
 }
 
 TEST_F(BasicTests, TestMixedNameArgumentsThrowError)

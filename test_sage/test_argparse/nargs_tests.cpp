@@ -1,38 +1,38 @@
 #include <sage/argparse/argparse.hpp>
 
+#include "common_setup.hpp"
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "common.hpp"
 
 TEST(NargsTests, TestArgumentsAreReturnedForSuccessfullyEnteredMultiplePositionalArguments)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
     parser.add_argument("foo").num_args(3).help("Positional foo argument.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "FOO3"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3};
+    parser.parse_args((int)argv.size(), &argv[0]);
 
-    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3"})));
+    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({FooArgValue1, FooArgValue2, FooArgValue3})));
 }
 
 TEST(NargsTests, TestExitsWhenInsufficientMultiplePositionalArgumentsAreEntered)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("foo").num_args(3).help("Positional foo argument.");
+    parser.add_argument(FooArgName).num_args(3).help(FooHelp);
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2"});
-    EXPECT_EXIT(parser.parse_args(argc, (char**)argv), testing::ExitedWithCode(1), "");
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2};
+    EXPECT_EXIT(parser.parse_args((int)argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
 }
 
 TEST(NargsTests, TestMultipleArgumentsAreReturnedForSuccessfullyEnteredMultiplePositionalArguments)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("foo").num_args(3).help("Positional foo argument.");
-    parser.add_argument("bar").num_args(2).help("Positional bar argument.");
+    parser.add_argument(FooArgName).num_args(3).help(FooHelp);
+    parser.add_argument(BarArgName).num_args(2).help(BarHelp);
 
-
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "FOO3", "BAR1", "BAR2"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, BarArgValue1, BarArgValue2};
+    parser.parse_args((int)argv.size(), &argv[0]);
 
     ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3"})));
     ASSERT_THAT(parser.get<std::vector<std::string>>("bar"), ::testing::ContainerEq(std::vector<std::string>({"BAR1", "BAR2"})));
@@ -41,43 +41,44 @@ TEST(NargsTests, TestMultipleArgumentsAreReturnedForSuccessfullyEnteredMultipleP
 TEST(NargsTests, TestExitsWhenInsufficientArgumentsAreEnteredMultiplePositionalArguments)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("foo").num_args(3).help("Positional foo argument.");
-    parser.add_argument("bar").num_args(2).help("Positional bar argument.");
+    parser.add_argument(FooArgName).num_args(3).help(FooHelp);
+    parser.add_argument(BarArgName).num_args(2).help(BarHelp);
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "BAR1"});
-    EXPECT_EXIT(parser.parse_args(argc, (char**)argv), testing::ExitedWithCode(1), "");
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, BarArgValue1};
+
+    EXPECT_EXIT(parser.parse_args((int)argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
 }
 
 TEST(NargsTests, TestAllPositionalArgsAreConsumedWhenOnlyPositionalArgumentsPresent)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
+    parser.add_argument(FooArgName).num_args("*").help("Positional bar argument consumes all.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "FOO3", "FOO4", "FOO5"});
-    parser.parse_args(argc, (char**)argv);
-    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5})));
 }
 
 TEST(NargsTests, TestEmptyVectorReturnedWhenConsumingAllArgumentsButNoInputsGiven)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
+    parser.add_argument(FooArgName).num_args("*").help("Positional bar argument consumes all.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName};
+    parser.parse_args((int)argv.size(), &argv[0]);
     ASSERT_TRUE(parser.get<std::vector<std::string>>("foo").empty());
 }
 
 TEST(NargsTests, TestAllPositionalArgsAreConsumedUpToNextOptionalArgument)
 {
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
-    parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
-    parser.add_argument({"-b", "--bar"}).help("Optional bar argument.");
+    parser.add_argument(FooArgName).num_args("*").help("Positional bar argument consumes all.");
+    parser.add_argument({BarShortOptArgName, BarOptArgName}).help("Optional bar argument.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "FOO3", "FOO4", "FOO5", "-b", "hello"});
-    parser.parse_args(argc, (char**)argv);
-    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
-    ASSERT_EQ(parser.get<std::string>("bar"), "hello");
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName, BarArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5})));
+    ASSERT_EQ(parser.get<std::string>(BarArgName), BarArgValue);
 }
 
 TEST(NargsTests, TestAllPositionalArgsAreConsumedWithMultiplePositionalArguments)
@@ -86,8 +87,8 @@ TEST(NargsTests, TestAllPositionalArgsAreConsumedWithMultiplePositionalArguments
     parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
     parser.add_argument("bar").num_args("*").help("Positional bar argument consumes all too!");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "FOO3", "FOO4", "FOO5"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5};
+    parser.parse_args((int)argv.size(), &argv[0]);
     ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
     ASSERT_TRUE(parser.get<std::string>("bar").empty());
 }
@@ -98,8 +99,9 @@ TEST(NargsTests, TestUnknownPositionalArgumentRecievedGivingArgumentsAfterConsum
     parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
     parser.add_argument({"-b", "--bar"}).help("Optional bar argument.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1", "FOO2", "FOO3", "FOO4", "FOO5", "-b", "hello", "NOPE"});
-    EXPECT_EXIT(parser.parse_args(argc, (char**)argv), testing::ExitedWithCode(1), "");
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName, BarArgValue, BarArgValue1};
+
+    EXPECT_EXIT(parser.parse_args((int)argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
 }
 
 TEST(NargsTests, TestSingleArgumentReturnsCorrectValueForPresentPositionalArgument)
@@ -107,8 +109,8 @@ TEST(NargsTests, TestSingleArgumentReturnsCorrectValueForPresentPositionalArgume
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
     parser.add_argument("foo").num_args("?").help("Positional bar argument consumes single if available.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe", "FOO1" });
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName, FooArgValue1};
+    parser.parse_args((int)argv.size(), &argv[0]);
     ASSERT_EQ(argv[1], parser.get<std::string>("foo"));
 }
 
@@ -117,8 +119,8 @@ TEST(NargsTests, TestSingleArgumentReturnsCorrectDefaultValueForPositionalArgume
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
     parser.add_argument("foo").num_args("?").help("Positional bar argument consumes single if available.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName};
+    parser.parse_args((int)argv.size(), &argv[0]);
     ASSERT_EQ("", parser.get<std::string>("foo"));
 }
 
@@ -128,8 +130,8 @@ TEST(NargsTests, TestSingleArgumentReturnsCorrectDefaultValueForPositionalArgume
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
     parser.add_argument("foo").num_args("?").default_value(default_arg_value).help("Positional bar argument consumes single if available.");
 
-    const auto& [argc, argv] = make_args({"DummyApp.exe"});
-    parser.parse_args(argc, (char**)argv);
+    std::vector<char*> argv = {AppName};
+    parser.parse_args((int)argv.size(), &argv[0]);
     ASSERT_EQ(default_arg_value, parser.get<std::string>("foo"));
 }
 

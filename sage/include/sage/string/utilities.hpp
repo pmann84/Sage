@@ -5,6 +5,7 @@
 #include <locale>
 //#include <codecvt>
 #include <functional>
+#include <algorithm>
 
 namespace sage::string::utilities
 {
@@ -152,5 +153,15 @@ namespace sage::string::utilities
         std::basic_string<CharT> lower_str(str);
         for (auto& c : lower_str) c = std::tolower(c);
         return lower_str;
+    }
+
+    inline std::string get_string_with_max_size(const std::vector<std::string>& strings)
+    {
+        return *std::max_element(strings.begin(), strings.end(), [](const std::string& a, const std::string& b){ return a.size() < b.size(); });
+    }
+
+    inline size_t get_max_string_size(const std::vector<std::string>& strings)
+    {
+        return get_string_with_max_size(strings).size();
     }
 }
