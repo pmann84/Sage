@@ -77,6 +77,10 @@ jobs:
     #   # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
     #   run: ctest --build-config ${{ matrix.build_type }}
 
+    - name: List files in the repository
+      run: |
+        ls ${{ steps.strings.outputs.build-output-dir }}
+      
     - name: Tests
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       shell: bash
