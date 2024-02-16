@@ -7,6 +7,7 @@ This is a collection of C++ things I've written over the years. These are probab
 The Sage library contains the following sets of functionality click for more details
 - [Argument Parsing](docs/argparse.md) - `sage::argparse`
 - [String Utilities](docs/string_utilities.md) - `sage::string::utilities`
+- [Performance Monitoring](docs/performance.md) - `sage::performance`
 
 ## Tech Stack
 - C++ 
