@@ -22,5 +22,6 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 
 add_subdirectory(sage)
 
+enable_testing()
 add_subdirectory(vendor)
 add_subdirectory(test_sage)

@@ -1,5 +1,6 @@
 project(test_sage)
 
+include(GoogleTest)
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS *.cpp *.hpp)
 
 message(${TEST_SOURCES})
@@ -15,3 +16,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC gtest)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/test_argparse/test_config_files $<TARGET_FILE_DIR:test_sage>/)
+
+gtest_discover_tests(${PROJECT_NAME})
