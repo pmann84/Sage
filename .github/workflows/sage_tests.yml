@@ -81,4 +81,4 @@ jobs:
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       shell: bash
       # Execute tests defined by the CMake configuration.  
-      run: ./tests/release/test_sage.exe
+      run: ./test_sage.exe
