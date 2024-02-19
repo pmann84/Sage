@@ -16,9 +16,9 @@ namespace sage::performance
     class timer
     {
     public:
-        using TimePointT = std::chrono::time_point<std::chrono::high_resolution_clock>;
+        using time_point_t = std::chrono::time_point<std::chrono::high_resolution_clock>;
 
-        explicit timer(timer_monitor& monitor) : m_monitor(monitor)
+        explicit timer(timer_monitor &monitor) : m_monitor(monitor)
         {
             m_start_time_point = std::chrono::high_resolution_clock::now();
         }
@@ -39,13 +39,13 @@ namespace sage::performance
 
     private:
         // start time point
-        TimePointT m_start_time_point;
+        time_point_t m_start_time_point;
         // results monitor
-        timer_monitor& m_monitor;
+        timer_monitor &m_monitor;
     };
 
     // Convenience calling function
-    inline void measure(timer_monitor& monitor, const std::function<void()>& func)
+    inline void measure(timer_monitor &monitor, const std::function<void()> &func)
     {
         timer t(monitor);
         func();
