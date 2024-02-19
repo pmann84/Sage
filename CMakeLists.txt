@@ -8,6 +8,9 @@ project(
         LANGUAGES CXX C
 )
 
+# Project options
+option(BUILD_TESTS "Build test programs" OFF)
+
 # CMake C++ standards
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,5 +26,8 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 add_subdirectory(sage)
 
 enable_testing()
-add_subdirectory(vendor)
-add_subdirectory(test_sage)
+
+if(BUILD_TESTS)
+        add_subdirectory(vendor)
+        add_subdirectory(test_sage)
+endif(BUILD_TESTS)
