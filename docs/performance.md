@@ -1,4 +1,4 @@
-# sage::performance
+# `sage::performance`
 
 ## Overview
 This is a simple RAII timer for C++, which provides a hook to gather timed measurements.

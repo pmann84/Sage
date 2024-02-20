@@ -1,3 +1,3 @@
-# sage::string::utilities
+# `sage::string::utilities`
 
 ## Overview
