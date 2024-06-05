@@ -9,7 +9,7 @@ project(
 )
 
 # Project options
-option(BUILD_TESTS "Build test programs" OFF)
+option(SAGE_BUILD_TESTS "Build test programs" OFF)
 
 # CMake C++ standards
 set(CMAKE_CXX_STANDARD 23)
@@ -27,7 +27,7 @@ add_subdirectory(sage)
 
 enable_testing()
 
-if(BUILD_TESTS)
+if(SAGE_BUILD_TESTS)
         add_subdirectory(vendor)
         add_subdirectory(test_sage)
-endif(BUILD_TESTS)
+endif(SAGE_BUILD_TESTS)
