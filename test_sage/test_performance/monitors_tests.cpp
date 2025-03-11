@@ -63,3 +63,15 @@ TEST(PerformanceMonitorTests, TestPerformanceMonitorSAverageIsCorrect)
 
     ASSERT_THAT(perf_monitor.s_average(), testing::StrEq("00:00:00:300"));
 }
+
+TEST(PerformanceMonitorTests, TestPerformanceMonitorSAverageIsCorrectPadding)
+{
+    sage::performance::performance_monitor perf_monitor;
+    perf_monitor.add_measurement(std::chrono::milliseconds(50));
+    perf_monitor.add_measurement(std::chrono::milliseconds(20));
+    perf_monitor.add_measurement(std::chrono::milliseconds(70));
+    perf_monitor.add_measurement(std::chrono::milliseconds(10));
+    perf_monitor.add_measurement(std::chrono::milliseconds(42));
+
+    ASSERT_THAT(perf_monitor.s_average(), testing::StrEq("00:00:00:038"));
+}

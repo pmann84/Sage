@@ -63,7 +63,7 @@ namespace sage::performance
             mins -= std::chrono::duration_cast<std::chrono::minutes>(hour);
 
             std::stringstream ss;
-            ss << std::setw(2) << std::setfill('0') << hour.count() << ":" <<std::setw(2) << std::setfill('0') <<  mins.count() << ":" << std::setw(2) << std::setfill('0') << secs.count() << ":" << std::chrono::duration_cast<std::chrono::milliseconds>(ms).count();
+            ss << std::setw(2) << std::setfill('0') << hour.count() << ":" <<std::setw(2) << std::setfill('0') <<  mins.count() << ":" << std::setw(2) << std::setfill('0') << secs.count() << ":" << std::setw(3) << std::setfill('0') << std::chrono::duration_cast<std::chrono::milliseconds>(ms).count();
             return ss.str();
         }
 
