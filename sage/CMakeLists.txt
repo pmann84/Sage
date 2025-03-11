@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.17)
+
 set(PROJECT_NAME "sage")
 
 add_library(${PROJECT_NAME} INTERFACE)

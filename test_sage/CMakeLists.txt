@@ -1,10 +1,13 @@
+cmake_minimum_required(VERSION 3.17)
+
 project(test_sage)
 
 include(GoogleTest)
-file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS *.cpp *.hpp)
+file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS test_*/*.cpp test_*/*.hpp)
 
 message(${TEST_SOURCES})
-add_executable(${PROJECT_NAME} ${TEST_SOURCES})
+add_executable(${PROJECT_NAME} ${TEST_SOURCES}
+        test_performance/monitors_tests.cpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC sage)
 
