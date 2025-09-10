@@ -643,7 +643,7 @@ namespace sage::argparse
             }
         }
 
-        void process_optional_command_line_argument(const std::vector<std::string>& command_line_args, std::vector<std::string>::iterator& it)
+        void process_optional_command_line_argument(std::vector<std::string>& command_line_args, std::vector<std::string>::iterator& it)
         {
             // If asked for help then print usage and help and exit
             if (get_help_argument().matches_arg_name(*it))
@@ -670,33 +670,50 @@ namespace sage::argparse
             }
             else
             {
-                // Get the number of args meant to be consumed
-                if (arg_it->num_args() > 0)
+                auto& opt_arg = *arg_it;
+                ++it;
+                switch (opt_arg.num_args_mode())
                 {
-                    // Get the next num_arg arguments
-                    auto count = arg_it->num_args();
-                    while (count != 0)
-                    {
-                        // Get the next arg
-                        it++;
-                        // check each is not another flag, or we haven't hit the end
-                        if (it == command_line_args.end() || validate::is_optional(*it))
-                        {
-                            std::stringstream ss;
-                            ss << "Error: Insufficient optional arguments. " << arg_it->dest() << " expected " << count << " more input(s) (" << arg_it->num_args() << " total)." << std::endl;
-                            print_error_usage_and_exit(ss.str());
-                        }
-                        else
-                        {
-                            arg_it->value(*it);
-                        }
-                        --count;
-                    }
+                    case NargsMode::Integer:
+                        consume_n_args(opt_arg, command_line_args, it);
+                        break;
+                    case NargsMode::All:
+                        consume_all_args(opt_arg, command_line_args, it);
+                        break;
+                    case NargsMode::AtLeastOne:
+                        consume_at_least_one_arg(opt_arg, command_line_args, it);
+                        break;
+                    case NargsMode::Single:
+                        consume_single_arg(opt_arg, command_line_args, it);
+                        break;
                 }
-                else
-                {
-                    arg_it->value(true);
-                }
+                // // Get the number of args meant to be consumed
+                // if (arg_it->num_args() > 0)
+                // {
+                //     // Get the next num_arg arguments
+                //     auto count = arg_it->num_args();
+                //     while (count != 0)
+                //     {
+                //         // Get the next arg
+                //         it++;
+                //         // check each is not another flag, or we haven't hit the end
+                //         if (it == command_line_args.end() || validate::is_optional(*it))
+                //         {
+                //             std::stringstream ss;
+                //             ss << "Error: Insufficient optional arguments. " << arg_it->dest() << " expected " << count << " more input(s) (" << arg_it->num_args() << " total)." << std::endl;
+                //             print_error_usage_and_exit(ss.str());
+                //         }
+                //         else
+                //         {
+                //             arg_it->value(*it);
+                //         }
+                //         --count;
+                //     }
+                // }
+                // else
+                // {
+                //     arg_it->value(true);
+                // }
             }
         }
 

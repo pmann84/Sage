@@ -89,8 +89,22 @@ TEST(NargsTests, TestAllPositionalArgsAreConsumedWithMultiplePositionalArguments
 
     std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5};
     parser.parse_args((int)argv.size(), &argv[0]);
+
     ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
     ASSERT_TRUE(parser.get<std::string>("bar").empty());
+}
+
+TEST(NargsTests, TestPositionalArgumentRecievedGivingArgumentsAfterConsumeAllPositionalAndOptionalArgs)
+{
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
+    parser.add_argument({"-b", "--bar"}).help("Optional bar argument.");
+
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName, BarArgValue};
+    parser.parse_args((int)argv.size(), &argv[0]);
+
+    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
+    ASSERT_THAT(parser.get<std::vector<std::string>>("bar"), ::testing::ContainerEq(std::vector<std::string>({"BAR"})));
 }
 
 TEST(NargsTests, TestUnknownPositionalArgumentRecievedGivingArgumentsAfterConsumeAllPositionalAndOptionalArgs)
@@ -102,6 +116,34 @@ TEST(NargsTests, TestUnknownPositionalArgumentRecievedGivingArgumentsAfterConsum
     std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName, BarArgValue, BarArgValue1};
 
     EXPECT_EXIT(parser.parse_args((int)argv.size(), &argv[0]), testing::ExitedWithCode(1), "");
+}
+
+TEST(NargsTests, TestAsManyPositionalArgumentsAreConsumedThenAllTheRestAreConsumedAsOptional)
+{
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
+    parser.add_argument({"-b", "--bar"}).num_args("*").help("Optional bar argument consumes all.");
+
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName, BarArgValue, BarArgValue1};
+
+    parser.parse_args((int)argv.size(), &argv[0]);
+
+    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
+    ASSERT_THAT(parser.get<std::vector<std::string>>("bar"), ::testing::ContainerEq(std::vector<std::string>({"BAR", "BAR1"})));
+}
+
+TEST(NargsTests, TestAsManyPositionalArgumentsAreConsumedThenNoneConsumedWhenNoOptionalArgumentsPresent)
+{
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument("foo").num_args("*").help("Positional bar argument consumes all.");
+    parser.add_argument({"-b", "--bar"}).num_args("*").help("Optional bar argument consumes all.");
+
+    std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName};
+
+    parser.parse_args((int)argv.size(), &argv[0]);
+
+    ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
+    ASSERT_TRUE(parser.get<std::vector<std::string>>("bar").empty());
 }
 
 TEST(NargsTests, TestSingleArgumentReturnsCorrectValueForPresentPositionalArgument)

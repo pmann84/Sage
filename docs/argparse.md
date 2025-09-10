@@ -98,11 +98,10 @@ Optional Arguments:
 ```
 
 ## Future Work
-Currently this is just an MVP feature set argument parser, but below is a non-exhaustive list of things that I would like to get to at some point, more things will probably get added as and when I use this library.
+Currently, this is just an MVP feature set argument parser, but below is a non-exhaustive list of things that I would like to get to at some point, more things will probably get added as and when I use this library.
 * Add support for inputting negative numbers as arguments
 * Refactor the output of the help string to be spaced better (taking into account all argument lengths etc)
 * Implement the ability to construct nested parsers for git style command line interfaces
-* Implement num_args = *, ? and + for positional and optional arguments (in progress)
 * Default argument values (for optional arguments and for positional args specified with num args *, ? or +)
 * Add logging, off by default, but ability to see what args have been parsed as they are parsed
 * Handle multiple arguments of the same names being added (positional and optional)
