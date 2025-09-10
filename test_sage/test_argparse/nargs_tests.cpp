@@ -141,7 +141,7 @@ TEST(NargsTests, TestAsManyPositionalArgumentsAreConsumedThenNoneConsumedWhenNoO
     std::vector<char*> argv = {AppName, FooArgValue1, FooArgValue2, FooArgValue3, FooArgValue4, FooArgValue5, BarShortOptArgName};
 
     parser.parse_args((int)argv.size(), &argv[0]);
-
+    
     ASSERT_THAT(parser.get<std::vector<std::string>>("foo"), ::testing::ContainerEq(std::vector<std::string>({"FOO1", "FOO2", "FOO3", "FOO4", "FOO5"})));
     ASSERT_TRUE(parser.get<std::vector<std::string>>("bar").empty());
 }

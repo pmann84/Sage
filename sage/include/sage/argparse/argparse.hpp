@@ -550,22 +550,23 @@ namespace sage::argparse
                 std::vector<std::string>& command_line_args,
                 std::vector<std::string>::iterator& current_arg)
         {
+            if (current_arg >= command_line_args.end())
+            {
+                return;
+            }
             // All - * - all args are gathered into a list.
             bool still_consuming = true;
             while (still_consuming)
             {
-                if ((current_arg+1 == command_line_args.end())
+                if (current_arg+1 == command_line_args.end()
                     || (!validate::is_optional(*current_arg) && validate::is_optional(*(current_arg+1))))
                 {
                     arg.value(*current_arg);
                     still_consuming = false;
                     break;
                 }
-                else
-                {
-                    arg.value(*current_arg);
-                    ++current_arg;
-                }
+                arg.value(*current_arg);
+                ++current_arg;
             }
         }
 
@@ -670,50 +671,49 @@ namespace sage::argparse
             }
             else
             {
+                const bool no_further_args = (it + 1 == command_line_args.end());
                 auto& opt_arg = *arg_it;
-                ++it;
                 switch (opt_arg.num_args_mode())
                 {
                     case NargsMode::Integer:
+                        if (no_further_args)
+                        {
+                            std::stringstream ss;
+                            ss << "Error: Expected at " << opt_arg.num_args() << " optional argument" << (opt_arg.num_args() > 1 ? "s" : "") << ". None given." << *it << std::endl;
+                            print_error_usage_and_exit(ss.str());
+                        }
+                        ++it;
                         consume_n_args(opt_arg, command_line_args, it);
                         break;
                     case NargsMode::All:
+                        if (no_further_args)
+                        {
+                            break;
+                        }
+                        ++it;
                         consume_all_args(opt_arg, command_line_args, it);
                         break;
                     case NargsMode::AtLeastOne:
+                        if (no_further_args)
+                        {
+                            std::stringstream ss;
+                            ss << "Error: Expected at least one optional argument. None given." << *it << std::endl;
+                            print_error_usage_and_exit(ss.str());
+                        }
+                        ++it;
                         consume_at_least_one_arg(opt_arg, command_line_args, it);
                         break;
                     case NargsMode::Single:
+                        if (no_further_args)
+                        {
+                            std::stringstream ss;
+                            ss << "Error: Expected one optional argument. None given." << *it << std::endl;
+                            print_error_usage_and_exit(ss.str());
+                        }
+                        ++it;
                         consume_single_arg(opt_arg, command_line_args, it);
                         break;
                 }
-                // // Get the number of args meant to be consumed
-                // if (arg_it->num_args() > 0)
-                // {
-                //     // Get the next num_arg arguments
-                //     auto count = arg_it->num_args();
-                //     while (count != 0)
-                //     {
-                //         // Get the next arg
-                //         it++;
-                //         // check each is not another flag, or we haven't hit the end
-                //         if (it == command_line_args.end() || validate::is_optional(*it))
-                //         {
-                //             std::stringstream ss;
-                //             ss << "Error: Insufficient optional arguments. " << arg_it->dest() << " expected " << count << " more input(s) (" << arg_it->num_args() << " total)." << std::endl;
-                //             print_error_usage_and_exit(ss.str());
-                //         }
-                //         else
-                //         {
-                //             arg_it->value(*it);
-                //         }
-                //         --count;
-                //     }
-                // }
-                // else
-                // {
-                //     arg_it->value(true);
-                // }
             }
         }
 
@@ -759,11 +759,26 @@ namespace sage::argparse
                 std::string longest_arg_name = arg.get_longest_name_string();
                 std::string arg_output_str = sage::string::utilities::to_upper(sage::string::utilities::trim_left(longest_arg_name, '-'));
                 ss << "[" << longest_arg_name;
-                size_t count = arg.num_args();
-                while (count > 0)
+                switch (arg.num_args_mode())
                 {
-                    ss << " " << arg_output_str;
-                    --count;
+                    case NargsMode::Integer:
+                    {
+                        size_t count = arg.num_args();
+                        while (count > 0)
+                        {
+                            // Output the dest name
+                            ss << arg.dest() << " ";
+                            --count;
+                        }
+                        break;
+                    }
+                    case NargsMode::All:
+                    {
+                        ss << " [" << sage::string::utilities::to_upper(arg.dest()) << " ...]";
+                        break;
+                    }
+                    default:
+                        break;
                 }
                 ss << "] ";
             }
@@ -787,8 +802,9 @@ namespace sage::argparse
                         ss << "[" << arg.dest() << " [" << sage::string::utilities::to_upper(arg.dest()) << " ...]] ";
                         break;
                     }
+                    default:
+                        break;
                 }
-
             }
             return ss.str();
         }

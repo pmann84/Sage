@@ -24,6 +24,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
 add_subdirectory(sage)
+add_subdirectory(examples)
 
 enable_testing()
 
