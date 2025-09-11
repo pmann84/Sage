@@ -10,6 +10,7 @@ project(
 
 # Project options
 option(SAGE_BUILD_TESTS "Build test programs" OFF)
+option(SAGE_BUILD_EXAMPLES "Build example programs" OFF)
 
 # CMake C++ standards
 set(CMAKE_CXX_STANDARD 23)
@@ -24,7 +25,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
 add_subdirectory(sage)
-add_subdirectory(examples)
+
+if(SAGE_BUILD_EXAMPLES)
+        add_subdirectory(examples)
+endif(SAGE_BUILD_EXAMPLES)
 
 enable_testing()
 

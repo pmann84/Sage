@@ -68,6 +68,7 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DSAGE_BUILD_TESTS=ON
+          --no-warn-unused-cli
           -S ${{ github.workspace }}
 
       - name: Build
