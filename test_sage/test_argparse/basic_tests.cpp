@@ -124,3 +124,21 @@ TEST_F(BasicTests, TestMixedNameArgumentsThrowError)
     auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
     ASSERT_ANY_THROW(parser.add_argument({"foo", "-f"}));
 }
+
+TEST_F(BasicTests, TestFlagWithNoNumArgsCanBeObtainedCorrectlyAsBooleanWhenSpecified) {
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument({"--foo", "-f"}).num_args(0).default_value(false).help(FooOptHelp);
+
+    std::vector<char*> argv = {AppName, FooShortOptArgName};
+    parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
+    ASSERT_EQ(parser.get<bool>("foo"), true);
+}
+
+TEST_F(BasicTests, TestFlagWithNoNumArgsCanBeObtainedCorrectlyAsBooleanWhenNotSpecified) {
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument({"--foo", "-f"}).num_args(0).default_value(false).help(FooOptHelp);
+
+    std::vector<char*> argv = {AppName};
+    parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
+    ASSERT_EQ(parser.get<bool>("foo"), false);
+}

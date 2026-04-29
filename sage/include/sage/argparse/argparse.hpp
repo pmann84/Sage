@@ -184,7 +184,7 @@ namespace sage::argparse
         {
             if (!m_values.empty())
             {
-                if (utils::is_container_value<ReturnArgT>)
+                if constexpr (utils::is_container_value<ReturnArgT>)
                 {
                     // Return all the values
                     return any_container_cast<ReturnArgT>(m_values);
@@ -196,7 +196,7 @@ namespace sage::argparse
             }
             if (m_default_value.has_value())
             {
-                if (utils::is_container_value<ReturnArgT>)
+                if constexpr (utils::is_container_value<ReturnArgT>)
                 {
                     // Return all the values
                     return any_container_cast<ReturnArgT>({m_default_value});
@@ -218,6 +218,7 @@ namespace sage::argparse
         {
             m_nargs_mode = NargsMode::Integer;
             m_nargs = n;
+            if (m_nargs == 0) m_default_value = false;
             return *this;
         }
 
@@ -434,7 +435,7 @@ namespace sage::argparse
 
             if (pos_it != m_positional_arguments.end())
             {
-                return pos_it-> template get<ArgT>();
+                return pos_it->template get<ArgT>();
             }
 
             if (opt_it != m_optional_arguments.end())
@@ -676,7 +677,12 @@ namespace sage::argparse
                 switch (opt_arg.num_args_mode())
                 {
                     case NargsMode::Integer:
-                        if (no_further_args)
+                        if (opt_arg.num_args() == 0)
+                        {
+                            opt_arg.default_value(true);
+                            break;
+                        }
+                        if (no_further_args && opt_arg.num_args() > 0)
                         {
                             std::stringstream ss;
                             ss << "Error: Expected at " << opt_arg.num_args() << " optional argument" << (opt_arg.num_args() > 1 ? "s" : "") << ". None given." << *it << std::endl;
