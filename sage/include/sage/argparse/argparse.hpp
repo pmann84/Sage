@@ -62,6 +62,11 @@ namespace sage::argparse
             return string::utilities::starts_with(argument_name, std::string("-"));
         }
 
+        inline bool is_optional_flag(const std::string& argument_name)
+        {
+            return string::utilities::starts_with(argument_name, std::string("-")) && argument_name.size() > 1 && !string::utilities::starts_with(argument_name, std::string("--"));
+        }
+
         inline bool is_valid_argument_flags(const std::vector<std::string>& argument_names)
         {
             bool positional = false;
@@ -460,24 +465,44 @@ namespace sage::argparse
             }
         }
 
-        void parse_args(int argc, char *argv[])
-        {
+        void parse_args(int argc, char *argv[]) {
             // Get the input from the command line
             std::vector<std::string> command_line_args;
             std::copy(argv, argv + argc, std::back_inserter(command_line_args));
 
             // Get values from environment
-    //            std::string getEnvVar( std::string const & key ) const
-    //            {
-    //                char * val = getenv( key.c_str() );
-    //                return val == NULL ? std::string("") : std::string(val);
-    //            }
+            //            std::string getEnvVar( std::string const & key ) const
+            //            {
+            //                char * val = getenv( key.c_str() );
+            //                return val == NULL ? std::string("") : std::string(val);
+            //            }
             // Get values from config file
 
             // Check if we have a name, if not, then take it from the arguments list
             if (m_program_name.empty() && !command_line_args.empty())
             {
                 m_program_name = std::filesystem::path(command_line_args.front()).filename().string();
+            }
+
+            // Preprocess any combined optional arguments
+            for (auto it = command_line_args.begin() + 1; it < command_line_args.end(); ++it)
+            {
+                if (validate::is_optional_flag(*it) && it->size() > 2)
+                {
+                    // We have a combined flag, we need to split it up and insert the individual flags back into the command line args
+                    std::string combined_flags = *it;
+                    // Remove the leading dash
+                    combined_flags = combined_flags.substr(1);
+                    // Split the flags into individual characters and add a dash in front of each
+                    std::vector<std::string> split_flags;
+                    for (char c : combined_flags)
+                    {
+                        split_flags.push_back(std::string("-") + c);
+                    }
+                    // Erase the combined flag from the command line args and insert the split flags in its place
+                    it = command_line_args.erase(it);
+                    it = command_line_args.insert(it, split_flags.begin(), split_flags.end());
+                }
             }
 
             // Iterate over the given arguments

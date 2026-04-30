@@ -16,3 +16,18 @@ TEST(ValidationTests, TestPositionalArgumentIsNotOptional)
 {
     ASSERT_FALSE(sage::argparse::validate::is_optional("foo"));
 }
+
+TEST(ValidationTests, TestOptionalFlagIsOptionalFlag)
+{
+    ASSERT_TRUE(sage::argparse::validate::is_optional_flag("-f"));
+}
+
+TEST(ValidationTests, TestOptionalArgumentIsNotOptionalFlag)
+{
+    ASSERT_FALSE(sage::argparse::validate::is_optional_flag("--foo"));
+}
+
+TEST(ValidationTests, TestPositionalArgumentIsNotOptionalFlag)
+{
+    ASSERT_FALSE(sage::argparse::validate::is_optional_flag("foo"));
+}

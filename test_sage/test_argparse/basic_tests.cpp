@@ -142,3 +142,51 @@ TEST_F(BasicTests, TestFlagWithNoNumArgsCanBeObtainedCorrectlyAsBooleanWhenNotSp
     parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
     ASSERT_EQ(parser.get<bool>("foo"), false);
 }
+
+TEST_F(BasicTests, TestTwoFlagsCanBeSpecifiedCombined) {
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument({"--foo", "-f"}).num_args(0).default_value(false).help(FooOptHelp);
+    parser.add_argument({"--bar", "-b"}).num_args(0).default_value(false).help(BarOptHelp);
+
+    std::vector<char*> argv = {AppName, FooBarCombinedShortOptName};
+    parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
+    ASSERT_EQ(parser.get<bool>("foo"), true);
+    ASSERT_EQ(parser.get<bool>("bar"), true);
+}
+
+TEST_F(BasicTests, TestTwoFlagsCanBeSpecifiedIndividually) {
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument({"--foo", "-f"}).num_args(0).default_value(false).help(FooOptHelp);
+    parser.add_argument({"--bar", "-b"}).num_args(0).default_value(false).help(BarOptHelp);
+
+    std::vector<char*> argv = {AppName, FooShortOptArgName, BarShortOptArgName};
+    parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
+    ASSERT_EQ(parser.get<bool>("foo"), true);
+    ASSERT_EQ(parser.get<bool>("bar"), true);
+}
+
+TEST_F(BasicTests, TestMultipleFlagsCanBeSpecifiedCombined) {
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument({"--foo", "-f"}).num_args(0).default_value(false).help(FooOptHelp);
+    parser.add_argument({"--bar", "-b"}).num_args(0).default_value(false).help(BarOptHelp);
+    parser.add_argument({"--baz", "-z"}).num_args(0).default_value(false).help(BazOptHelp);
+
+    std::vector<char*> argv = {AppName, FooBarBazCombinedShortOptName};
+    parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
+    ASSERT_EQ(parser.get<bool>("foo"), true);
+    ASSERT_EQ(parser.get<bool>("bar"), true);
+    ASSERT_EQ(parser.get<bool>("baz"), true);
+}
+
+TEST_F(BasicTests, TestMultipleFlagsCanBeSpecifiedCombinedButNotAll) {
+    auto parser = sage::argparse::argument_parser("MyParser", "Commandline options for my application!");
+    parser.add_argument({"--foo", "-f"}).num_args(0).default_value(false).help(FooOptHelp);
+    parser.add_argument({"--bar", "-b"}).num_args(0).default_value(false).help(BarOptHelp);
+    parser.add_argument({"--baz", "-z"}).num_args(0).default_value(false).help(BazOptHelp);
+
+    std::vector<char*> argv = {AppName, FooBarCombinedShortOptName};
+    parser.parse_args(static_cast<int>(argv.size()), &argv[0]);
+    ASSERT_EQ(parser.get<bool>("foo"), true);
+    ASSERT_EQ(parser.get<bool>("bar"), true);
+    ASSERT_EQ(parser.get<bool>("baz"), false);
+}
